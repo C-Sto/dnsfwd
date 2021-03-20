@@ -12,7 +12,7 @@ import (
 	"github.com/miekg/dns"
 )
 
-const version = "v0.2.2"
+var version string
 
 var domain string
 var upstream string
@@ -38,7 +38,12 @@ func main() {
 	flag.Parse()
 
 	if versionflag {
+		if version == "" {
+			fmt.Println("dnsfwd UNTAGGED LOCAL BUILD")
+			return
+		}
 		fmt.Println("dnsfwd " + version)
+		return
 	}
 
 	if logfile {

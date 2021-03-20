@@ -21,9 +21,9 @@ jobs:
 
     - name: Build
       run: |
-          GOOS=windows go build -ldflags "-s -w" -o "${{ github.event.repository.name }}_win_${RELEASE_VERSION}.exe"
-          GOOS=darwin go build -ldflags "-s -w" -o "${{ github.event.repository.name }}_mac_${RELEASE_VERSION}"
-          GOOS=linux go build -ldflags "-s -w" -o "${{ github.event.repository.name }}_linux_${RELEASE_VERSION}"
+          GOOS=windows go build -ldflags "-s -w -X main.version=${RELEASE_VERSION}" -o "${{ github.event.repository.name }}_win_${RELEASE_VERSION}.exe"
+          GOOS=darwin go build -ldflags "-s -w -X main.version=${RELEASE_VERSION}" -o "${{ github.event.repository.name }}_mac_${RELEASE_VERSION}"
+          GOOS=linux go build -ldflags "-s -w -X main.version=${RELEASE_VERSION}" -o "${{ github.event.repository.name }}_linux_${RELEASE_VERSION}"
 
     - name: Create Release
       id: create_release
