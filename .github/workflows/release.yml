@@ -17,9 +17,9 @@ jobs:
 
     - name: Build
       run: |
-          GOOS=windows go build -ldflags "-s -w" -o "${{ github.event.repository.name }}_win_${RELEASE_VERSION}.exe"
-          GOOS=darwin go build -ldflags "-s -w" -o "${{ github.event.repository.name }}_mac_${RELEASE_VERSION}"
-          GOOS=linux go build -ldflags "-s -w" -o "${{ github.event.repository.name }}_linux_${RELEASE_VERSION}"
+          GOOS=windows go build -ldflags "-s -w" -o "${{ github.event.repository.name }}_win_${GITHUB_REF:10}.exe"
+          GOOS=darwin go build -ldflags "-s -w" -o "${{ github.event.repository.name }}_mac_${GITHUB_REF:10}"
+          GOOS=linux go build -ldflags "-s -w" -o "${{ github.event.repository.name }}_linux_${GITHUB_REF:10}"
 
     - name: Create Release
       id: create_release
@@ -39,8 +39,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-        asset_path: ./${{ github.event.repository.name }}_win_${{ env.RELEASE_VERSION }}.exe
-        asset_name: ${{ github.event.repository.name }}_win_${{ env.RELEASE_VERSION }}.exe
+        asset_path: ./${{ github.event.repository.name }}_win_${GITHUB_REF:10}.exe
+        asset_name: ${{ github.event.repository.name }}_win_${GITHUB_REF:10}.exe
         asset_content_type: application/vnd.microsoft.portable-executable
         
     - name: Upload mac Asset
@@ -50,8 +50,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-        asset_path: ./${{ github.event.repository.name }}_mac_${{ env.RELEASE_VERSION }}
-        asset_name: ${{ github.event.repository.name }}_mac_${{ env.RELEASE_VERSION }}
+        asset_path: ./${{ github.event.repository.name }}_mac_${GITHUB_REF:10}
+        asset_name: ${{ github.event.repository.name }}_mac_${GITHUB_REF:10}
         asset_content_type: application/octet-stream
     - name: Upload nix Asset
       id: upload-release-asset-nix
@@ -60,6 +60,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-        asset_path: ./${{ github.event.repository.name }}_linux_${{ env.RELEASE_VERSION }}
-        asset_name: ${{ github.event.repository.name }}_linux_${{ env.RELEASE_VERSION }}
+        asset_path: ./${{ github.event.repository.name }}_linux_${GITHUB_REF:10}
+        asset_name: ${{ github.event.repository.name }}_linux_${GITHUB_REF:10}
         asset_content_type: application/x-elf
