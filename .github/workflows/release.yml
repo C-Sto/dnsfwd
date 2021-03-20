@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  push:
+    tags:
+    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.15
+
+    - name: Build
+      run: |
+          GOOS=windows go build -ldflags "-s -w" -o "${{ github.event.repository.name }}_win_${RELEASE_VERSION}.exe"
+          GOOS=darwin go build -ldflags "-s -w" -o "${{ github.event.repository.name }}_mac_${RELEASE_VERSION}"
+          GOOS=linux go build -ldflags "-s -w" -o "${{ github.event.repository.name }}_linux_${RELEASE_VERSION}"
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1.0.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+          
+    - name: Upload win Asset
+      id: upload-release-asset-win
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./${{ github.event.repository.name }}_win_${{ env.RELEASE_VERSION }}.exe
+        asset_name: ${{ github.event.repository.name }}_win_${{ env.RELEASE_VERSION }}.exe
+        asset_content_type: application/vnd.microsoft.portable-executable
+        
+    - name: Upload mac Asset
+      id: upload-release-asset-mac
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./${{ github.event.repository.name }}_mac_${{ env.RELEASE_VERSION }}
+        asset_name: ${{ github.event.repository.name }}_mac_${{ env.RELEASE_VERSION }}
+        asset_content_type: application/octet-stream
+    - name: Upload nix Asset
+      id: upload-release-asset-nix
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ./${{ github.event.repository.name }}_linux_${{ env.RELEASE_VERSION }}
+        asset_name: ${{ github.event.repository.name }}_linux_${{ env.RELEASE_VERSION }}
+        asset_content_type: application/x-elf
