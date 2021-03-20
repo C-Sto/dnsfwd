@@ -2,6 +2,10 @@
 
 Redirect DNS traffic to an upstream.
 
+Get Latest:
+
+- `wget https://github.com/C-Sto/dnsfwd/releases/latest/download/dnsfwd_linux` (replace linux with darwin or windows.exe for other OS versions)
+
 Example:
 
 This will forward all subdomains of example.com, and google.com to a host listening on 1053 at 192.168.0.53. It will not produce verbose output, and will not log to a file (see other options for that)
