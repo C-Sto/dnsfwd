@@ -2,8 +2,11 @@ package main
 
 import (
 	"flag"
+	"io"
 	"log"
+	"os"
 	"strings"
+	"time"
 
 	"github.com/miekg/dns"
 )
@@ -13,27 +16,49 @@ var upstream string
 
 var domainsplits []string
 var verbose bool
+var localbind string
+var transport string
+var outfile string
+var logfile bool
 
 func main() {
 
 	flag.StringVar(&domain, "d", "example.com,google.com", "highest level domain you'd like to filter on (can specify multiple, split on commas)")
 	flag.StringVar(&upstream, "u", "127.0.0.1:5353", "Upstream server to send requests to. Requires port!!")
+	flag.StringVar(&localbind, "l", "0.0.0.0:53", "Local address to listen on. Defaults to all interfaces on 53.")
+	flag.StringVar(&transport, "t", "udp", "Transport to use. Options are the Net value for a DNS Server (udp, udp4, udp6tcp, tcp4, tcp6, tcp-tls, tcp4-tls, tcp6-tls)")
+	flag.StringVar(&outfile, "of", "dnsfwd.log", "path of log file location (defaults to local dir)")
+	flag.BoolVar(&logfile, "o", false, "Log output to file (there will probably be a lot of junk here if verbose is turned on)")
 	flag.BoolVar(&verbose, "v", false, "enable verbose")
 	flag.Parse()
+
+	if logfile {
+		f, err := os.OpenFile(outfile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+		if err != nil {
+			log.Printf("error opening file: %v", err)
+		} else {
+			defer f.Close()
+			w := io.MultiWriter(os.Stdout, f)
+			log.SetOutput(w)
+		}
+	}
 
 	//split up the monitored domains if provided on the cli
 	domainsplits = strings.Split(domain, ",")
 
 	//listen via udp on localhost
-	s := dns.Server{Addr: "0.0.0.0:53", Net: "udp"}
+	s := dns.Server{Addr: localbind, Net: transport}
 
 	dns.HandleFunc(domain+".", func(w dns.ResponseWriter, r *dns.Msg) { checkQuery(w, r) })
 	for {
 		if verbose {
-			log.Printf("Listening for domains: %v\nSending to %s", domainsplits, upstream)
+			log.Printf("Listening for domains: %v", domainsplits)
+			log.Printf("Sending to %s", upstream)
 		}
 		e := s.ListenAndServe()
 		log.Println(e)
+		log.Println("Sleeping for 5 seconds before retrying...")
+		time.Sleep(time.Second * 5)
 	}
 }
 
