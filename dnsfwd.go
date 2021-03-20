@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -11,11 +12,14 @@ import (
 	"github.com/miekg/dns"
 )
 
+const version = "v0.2.2"
+
 var domain string
 var upstream string
 
 var domainsplits []string
 var verbose bool
+var versionflag bool
 var localbind string
 var transport string
 var outfile string
@@ -27,10 +31,15 @@ func main() {
 	flag.StringVar(&upstream, "u", "127.0.0.1:5353", "Upstream server to send requests to. Requires port!!")
 	flag.StringVar(&localbind, "l", "0.0.0.0:53", "Local address to listen on. Defaults to all interfaces on 53.")
 	flag.StringVar(&transport, "t", "udp", "Transport to use. Options are the Net value for a DNS Server (udp, udp4, udp6tcp, tcp4, tcp6, tcp-tls, tcp4-tls, tcp6-tls)")
-	flag.StringVar(&outfile, "of", "dnsfwd.log", "path of log file location (defaults to local dir)")
+	flag.StringVar(&outfile, "of", "dnsfwd.log", "Path of log file location (defaults to local dir)")
 	flag.BoolVar(&logfile, "o", false, "Log output to file (there will probably be a lot of junk here if verbose is turned on)")
 	flag.BoolVar(&verbose, "v", false, "enable verbose")
+	flag.BoolVar(&versionflag, "version", false, "show version and exit")
 	flag.Parse()
+
+	if versionflag {
+		fmt.Println("dnsfwd " + version)
+	}
 
 	if logfile {
 		f, err := os.OpenFile(outfile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
