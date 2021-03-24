@@ -80,7 +80,7 @@ func checkQuery(w dns.ResponseWriter, r *dns.Msg) {
 	for _, x := range r.Question {
 		onematch := false
 		for _, y := range domainsplits {
-			if strings.HasSuffix(x.Name, y+".") {
+			if strings.HasSuffix(strings.ToLower(x.Name), strings.ToLower(y+".")) {
 				onematch = true
 				break
 			}
