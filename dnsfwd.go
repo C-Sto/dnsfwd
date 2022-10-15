@@ -22,8 +22,10 @@ var verbose bool
 var versionflag bool
 var localbind string
 var transport string
+var upstreamtransport string
 var outfile string
 var logfile bool
+var timeout int
 
 func main() {
 
@@ -31,7 +33,9 @@ func main() {
 	flag.StringVar(&upstream, "u", "127.0.0.1:5353", "Upstream server to send requests to. Requires port!!")
 	flag.StringVar(&localbind, "l", "0.0.0.0:53", "Local address to listen on. Defaults to all interfaces on 53.")
 	flag.StringVar(&transport, "t", "udp", "Transport to use. Options are the Net value for a DNS Server (udp, udp4, udp6tcp, tcp4, tcp6, tcp-tls, tcp4-tls, tcp6-tls)")
+	flag.StringVar(&upstreamtransport, "ut", "udp", "Transport to use for upstream. Defaults to UDP.")
 	flag.StringVar(&outfile, "of", "dnsfwd.log", "Path of log file location (defaults to local dir)")
+	flag.IntVar(&timeout, "timeout", 2, "default timeout value for read/write/dial")
 	flag.BoolVar(&logfile, "o", false, "Log output to file (there will probably be a lot of junk here if verbose is turned on)")
 	flag.BoolVar(&verbose, "v", false, "enable verbose")
 	flag.BoolVar(&versionflag, "version", false, "show version and exit")
@@ -45,7 +49,6 @@ func main() {
 		fmt.Println("dnsfwd " + version)
 		return
 	}
-
 	if logfile {
 		f, err := os.OpenFile(outfile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 		if err != nil {
@@ -95,18 +98,29 @@ func checkQuery(w dns.ResponseWriter, r *dns.Msg) {
 			log.Println("Query for", x.Name, "from", w.RemoteAddr().String())
 		}
 	}
-	var m *dns.Msg
-	m = new(dns.Msg)
-	m.SetReply(r)
+	//var m *dns.Msg
+	m := new(dns.Msg)
+	//m.SetReply(r)
+	m.Question = r.Question
 	m.Compress = false
 	m.Authoritative = true
-
 	c := dns.Client{}
+	if timeout != 2 {
+		c.Timeout = time.Second * time.Duration(timeout)
+	}
+	c.Net = upstreamtransport
 	c.UDPSize = 0xffff
-
-	r2, _, err := c.Exchange(m, upstream)
+	//log.Println(m, upstream)
+	r2, _, err := c.Exchange(r, upstream)
 	if err != nil {
+		if verbose {
+			log.Println("Error communicating to upstream: ", err)
+		}
 		return
+	}
+	if verbose {
+		log.Println("Response:")
+		log.Println(r2)
 	}
 	w.WriteMsg(r2)
 }
