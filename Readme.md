@@ -31,15 +31,23 @@ This will forward all subdomains of example.com, and google.com to a host listen
 
 ```
   -d string
-        highest level domain you'd like to filter on (can specify multiple, split on commas) (default "example.com,google.com")
+        highest level domain you'd like to filter on (can specify multiple, split on commas)
+  -full
+        log full dns queries and responses
   -l string
         Local address to listen on. Defaults to all interfaces on 53. (default "0.0.0.0:53")
-  -o    Log output to file (there will probably be a lot of junk here if verbose is turned on)
+  -o    Log output to file (there will probably be a lot of junk here if verbose, and full queries are turned on)
   -of string
-        path of log file location (defaults to local dir) (default "dnsfwd.log")
+        Path of log file location (defaults to local dir) (default "dnsfwd.log")
   -t string
-        Transport to use. Options are the Net value for a DNS Server (udp, udp4, udp6tcp, tcp4, tcp6, tcp-tls, tcp4-tls, tcp6-tls) (default "udp")
+        Transport to use. Options are the Net value for a DNS Server (udp, udp4, udp6tcp, tcp4, tcp6, tcp-tls, tcp4-tls, tcp6-tls). Multiple can be supplied - comma separate (default "tcp,udp")
+  -timeout int
+        default timeout value for read/write/dial (default 2)
   -u string
         Upstream server to send requests to. Requires port!! (default "127.0.0.1:5353")
+  -ut string
+        Transport to use for upstream. Defaults to UDP. (default "udp")
   -v    enable verbose
+  -version
+        show version and exit
 ```
